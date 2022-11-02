@@ -1,8 +1,9 @@
 import java.io.File
 
-fun main(args: Array<String>) {
+fun main() {
   // aoc2015.day1.complex1()
-  aoc2015.day1.complex2()
+  // aoc2015.day1.complex2()
+  aoc2015.day2.complex1()
 }
 
 object Configuration {
@@ -17,4 +18,12 @@ object Input {
   }
 
   fun readFile(fileName: String): String = File(fileName).readText()
+
+  fun readLines(year: Int, day: Int): List<String> {
+    val filename = String.format("%02d.txt", day)
+    val path = "${Configuration.inputDir}/$year/$filename"
+    return readLines(path)
+  }
+
+  fun readLines(fileName: String): List<String> = File(fileName).readLines()
 }

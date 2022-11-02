@@ -1,10 +1,9 @@
 package aoc2015.day1
 
 import Input
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.takeWhile
@@ -16,8 +15,7 @@ fun complex1() = runBlocking {
   val input = Input.readFile(2015, 1)
 
   val upJob = async {
-    val c = input.count { it == '(' }
-    c
+    input.count { it == '(' }
   }
 
   val downJob = async {
@@ -40,16 +38,19 @@ fun complex1() = runBlocking {
 }
 
 fun complex2() = runBlocking {
-  // val test1 = "()())" to 5
-  // part2test(test1.first, test1.second)
+  val test1 = "()())" to 5
+  part2test(test1.first, test1.second)
 
-  val input = Input.readFile(2015, 1)
-  part2test(input)
+  // val input = Input.readFile(2015, 1)
+  // part2test(input)
 }
 
 suspend fun part2test(input: String, expected: Int? = null) {
-  val flow = flow {
-    input.forEach { emit(it) }
+  val flow = flow() {
+    input.forEach {
+      println("emitting $it")
+      emit(it)
+    }
   }
 
   var floor = 0
@@ -57,7 +58,10 @@ suspend fun part2test(input: String, expected: Int? = null) {
 
   flow
     .takeWhile { floor != -1 }
+    .buffer(5)
     .map {
+      delay(10)
+      println("map")
       when (it) {
         '(' -> 1
         ')' -> -1
@@ -65,6 +69,9 @@ suspend fun part2test(input: String, expected: Int? = null) {
       }
     }.withIndex()
     .collect() {
+      println("starting collect")
+      delay(500)
+      println("final collect")
       floor += it.value
       index = it.index
     }
