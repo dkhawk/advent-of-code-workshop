@@ -1,9 +1,15 @@
 import java.io.File
 
-fun main() {
+fun main(args: Array<String>) {
+  val testing = args.contains("test")
+
   // aoc2015.day1.complex1()
   // aoc2015.day1.complex2()
-  aoc2015.day2.complex1()
+
+  // aoc2015.day3.complex1(testing)
+  // aoc2015.day3.complex2(testing)
+  // aoc2015.day4.complex1(testing)
+  aoc2015.day4.complex2(testing)
 }
 
 object Configuration {
