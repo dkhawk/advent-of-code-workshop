@@ -1,12 +1,16 @@
 package aoc2015.day4
 
 import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.yield
 
 fun complex1(testing: Boolean) {
   val testInputs = listOf(
@@ -46,10 +50,15 @@ fun complex2(testing: Boolean) {
 
 private fun mine(key: String, numZeros: Int = 5): Int = runBlocking {
   val start = "0" * numZeros
-  val numJobs = 20
+  val numJobs = 10
   val channel = Channel<Int>()
+  val atomicInteger = AtomicInteger(numJobs)
+
+  val mutex = Mutex()
 
   var foundAnswer = Int.MAX_VALUE
+  val milestoneStep = 1000
+  var nextMilestone = milestoneStep
 
   val jobs = (0 until numJobs).map {
     launch(Dispatchers.Default) {
@@ -63,8 +72,24 @@ private fun mine(key: String, numZeros: Int = 5): Int = runBlocking {
           break
         } else {
           answer += numJobs
+          if (answer > nextMilestone) {
+            atomicInteger.getAndDecrement()
+            yield()
+          }
         }
       }
+      println("max number tested: $answer")
+    }
+  }
+
+  val supervisor = launch {
+    while (foundAnswer == Int.MAX_VALUE) {
+      while (atomicInteger.get() > 0) {
+        delay(1L)
+      }
+
+      atomicInteger.set(numJobs)
+      nextMilestone += milestoneStep
     }
   }
 
@@ -78,6 +103,7 @@ private fun mine(key: String, numZeros: Int = 5): Int = runBlocking {
 
   jobs.forEach { it.cancelAndJoin() }
   answerJob.cancel()
+  supervisor.cancel()
   foundAnswer
 }
 
